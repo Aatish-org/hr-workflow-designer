@@ -1,4 +1,4 @@
-import { useMemo, useState, type DragEvent } from 'react';
+import { useMemo, type DragEvent } from 'react';
 import {
   Background,
   Controls,
@@ -9,14 +9,12 @@ import {
   applyEdgeChanges,
   applyNodeChanges,
   type Connection,
-  type Edge,
   type EdgeChange,
   type Node,
   type NodeChange,
   type NodeTypes,
 } from 'reactflow';
 import { NodeSidebar } from './NodeSidebar';
-import { useNodeSelection } from '../../hooks/useNodeSelection';
 import { useWorkflowValidation } from '../../hooks/useWorkflowValidation';
 import { deserializeWorkflow, serializeWorkflow } from '../../utils/serialization';
 import type { WorkflowNodeData, WorkflowNodeDefinition, WorkflowNodeType } from '../../types/workflow';
@@ -25,6 +23,11 @@ import { TaskNode } from '../Nodes/TaskNode';
 import { ApprovalNode } from '../Nodes/ApprovalNode';
 import { AutomatedStepNode } from '../Nodes/AutomatedStepNode';
 import { EndNode } from '../Nodes/EndNode';
+import { TaskNodeForm } from '../Forms/TaskNodeForm';
+import { ApprovalNodeForm } from '../Forms/ApprovalNodeForm';
+import { AutomatedStepNodeForm } from '../Forms/AutomatedStepNodeForm';
+import { StartNodeForm } from '../Forms/StartNodeForm';
+import { EndNodeForm } from '../Forms/EndNodeForm';
 import { useWorkflowStore } from '../../stores/workflowStore';
 import 'reactflow/dist/style.css';
 
@@ -35,21 +38,6 @@ const nodeTypes: NodeTypes = {
   automatedStep: AutomatedStepNode,
   end: EndNode,
 };
-
-const initialWorkflowNodes: Node<WorkflowNodeData>[] = [
-  { id: 'start-1', type: 'start', position: { x: 120, y: 120 }, data: { label: 'Start' } },
-  { id: 'task-1', type: 'task', position: { x: 380, y: 120 }, data: { label: 'Review request' } },
-  { id: 'approval-1', type: 'approval', position: { x: 650, y: 120 }, data: { label: 'Manager approval' } },
-  { id: 'automated-1', type: 'automatedStep', position: { x: 920, y: 120 }, data: { label: 'Provision access' } },
-  { id: 'end-1', type: 'end', position: { x: 1190, y: 120 }, data: { label: 'End' } },
-];
-
-const initialEdges: Edge[] = [
-  { id: 'e-start-task', source: 'start-1', target: 'task-1', type: 'smoothstep' },
-  { id: 'e-task-approval', source: 'task-1', target: 'approval-1', type: 'smoothstep' },
-  { id: 'e-approval-auto', source: 'approval-1', target: 'automated-1', type: 'smoothstep' },
-  { id: 'e-auto-end', source: 'automated-1', target: 'end-1', type: 'smoothstep' },
-];
 
 const emptyWorkflow = deserializeWorkflow('{"nodes":[]}');
 
@@ -71,10 +59,16 @@ function makeNode(type: WorkflowNodeType, position: { x: number; y: number }): N
 }
 
 export function WorkflowEditor() {
-  const [nodes, setNodes] = useState(initialWorkflowNodes);
-  const [edges, setEdges] = useState(initialEdges);
-  const { selectedNodeId, setSelectedNodeId } = useNodeSelection<string>();
-  const { setNodes: setStoreNodes, setEdges: setStoreEdges, selectNode, deleteNode, getSelectedNode } = useWorkflowStore();
+  const {
+    nodes,
+    edges,
+    selectedNodeId,
+    setNodes: setStoreNodes,
+    setEdges: setStoreEdges,
+    selectNode,
+    deleteNode,
+    getSelectedNode,
+  } = useWorkflowStore();
 
   const workflowNodes = useMemo(() => nodes.map((node) => ({
     id: node.id,
@@ -91,27 +85,18 @@ export function WorkflowEditor() {
   );
 
   const onNodesChange = (changes: NodeChange[]) => {
-    setNodes((current) => {
-      const next = applyNodeChanges(changes, current);
-      setStoreNodes(next);
-      return next;
-    });
+    const next = applyNodeChanges(changes, nodes);
+    setStoreNodes(next);
   };
 
   const onEdgesChange = (changes: EdgeChange[]) => {
-    setEdges((current) => {
-      const next = applyEdgeChanges(changes, current);
-      setStoreEdges(next);
-      return next;
-    });
+    const next = applyEdgeChanges(changes, edges);
+    setStoreEdges(next);
   };
 
   const onConnect = (connection: Connection) => {
-    setEdges((current) => {
-      const next = addEdge({ ...connection, type: 'smoothstep' }, current);
-      setStoreEdges(next);
-      return next;
-    });
+    const next = addEdge({ ...connection, type: 'smoothstep' }, edges);
+    setStoreEdges(next);
   };
 
   const onDragStart = (event: DragEvent<HTMLButtonElement>, nodeType: WorkflowNodeType) => {
@@ -135,22 +120,37 @@ export function WorkflowEditor() {
       y: event.clientY - bounds.top,
     };
 
-    setNodes((current) => {
-      const next = [...current, makeNode(type, position)];
-      setStoreNodes(next);
-      return next;
-    });
+    const next = [...nodes, makeNode(type, position)];
+    setStoreNodes(next);
   };
 
   const deleteSelectedNode = () => {
     if (!selectedNodeId) return;
     deleteNode(selectedNodeId);
-    setNodes((current) => current.filter((node) => node.id !== selectedNodeId));
-    setEdges((current) => current.filter((edge) => edge.source !== selectedNodeId && edge.target !== selectedNodeId));
-    setSelectedNodeId(null);
+    selectNode(null);
   };
 
   const selectedNode = getSelectedNode();
+  const renderNodeForm = () => {
+    if (!selectedNode) {
+      return <p style={{ margin: 0, color: '#64748b', fontSize: 14 }}>Select a node to edit its configuration.</p>;
+    }
+
+    switch (selectedNode.type) {
+      case 'task':
+        return <TaskNodeForm />;
+      case 'approval':
+        return <ApprovalNodeForm />;
+      case 'automatedStep':
+        return <AutomatedStepNodeForm />;
+      case 'start':
+        return <StartNodeForm />;
+      case 'end':
+        return <EndNodeForm />;
+      default:
+        return null;
+    }
+  };
 
   return (
     <div style={{ display: 'flex', height: 'calc(100vh - 48px)', minHeight: 760, border: '1px solid #e5e7eb', borderRadius: 18, overflow: 'hidden', background: '#fff' }}>
@@ -166,7 +166,6 @@ export function WorkflowEditor() {
           onDragOver={onDragOver}
           onDrop={onDrop}
           onNodeClick={(_, node) => {
-            setSelectedNodeId(node.id);
             selectNode(node.id);
           }}
           fitView
@@ -196,6 +195,12 @@ export function WorkflowEditor() {
           </Panel>
         </ReactFlow>
       </div>
+      <aside style={{ width: 360, borderLeft: '1px solid #e5e7eb', background: '#f8fafc', padding: 16, overflowY: 'auto' }}>
+        <div style={{ display: 'grid', gap: 12 }}>
+          <h2 style={{ margin: 0, fontSize: 18 }}>Node configuration</h2>
+          {renderNodeForm()}
+        </div>
+      </aside>
     </div>
   );
 }
