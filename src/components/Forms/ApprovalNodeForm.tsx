@@ -14,6 +14,8 @@ export function ApprovalNodeForm() {
     <NodeFormPanel
       title="Approval node"
       subtitle="Configure approval gate details"
+      nodeType={selected?.type}
+      nodeId={selected?.id}
       hasSelection={Boolean(isApprovalNode)}
       validationErrors={isApprovalNode ? validationErrors : []}
       onSubmit={() => {

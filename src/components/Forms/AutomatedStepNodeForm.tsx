@@ -14,6 +14,8 @@ export function AutomatedStepNodeForm() {
     <NodeFormPanel
       title="Automated step node"
       subtitle="Configure automation details"
+      nodeType={selected?.type}
+      nodeId={selected?.id}
       hasSelection={Boolean(isAutomatedStepNode)}
       validationErrors={isAutomatedStepNode ? validationErrors : []}
       onSubmit={() => {

@@ -5,6 +5,7 @@ import { validateWorkflowStructure, type WorkflowValidationResult } from '../../
 import type { WorkflowNodeDefinition, WorkflowNodeType } from '../../types/workflow';
 import { useWorkflowStore } from '../../stores/workflowStore';
 import { simulateWorkflowExecution, type WorkflowExecutionLog, type WorkflowSimulationResponse } from './workflowExecution';
+import { Spinner } from '../common/Spinner';
 
 interface AutomationItem {
   id: string;
@@ -16,7 +17,8 @@ export function WorkflowTestPanel() {
   const { nodes, edges, validationErrors } = useWorkflowStore();
   const [automationItems, setAutomationItems] = useState<AutomationItem[]>([]);
   const [logs, setLogs] = useState<WorkflowExecutionLog[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingAutomations, setIsLoadingAutomations] = useState(false);
+  const [isRunningSimulation, setIsRunningSimulation] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const workflowDefinition = useMemo<WorkflowNodeDefinition[]>(
@@ -34,17 +36,20 @@ export function WorkflowTestPanel() {
   const structuralValidation = useMemo<WorkflowValidationResult>(() => validateWorkflowStructure(workflowDefinition, edges), [workflowDefinition, edges]);
 
   const loadAutomations = async () => {
+    setIsLoadingAutomations(true);
     setErrorMessage(null);
     try {
       const response = await apiClient.get<{ automations: AutomationItem[] }>('/api/automations');
       setAutomationItems(response.automations);
     } catch (error) {
       setErrorMessage(error instanceof ApiError ? `Failed to load automations (${error.status}).` : 'Failed to load automations.');
+    } finally {
+      setIsLoadingAutomations(false);
     }
   };
 
   const runSimulation = async () => {
-    setIsLoading(true);
+    setIsRunningSimulation(true);
     setErrorMessage(null);
     setLogs([]);
 
@@ -75,7 +80,7 @@ export function WorkflowTestPanel() {
         { timestamp: new Date().toISOString(), level: 'error', message: 'Simulation request failed.' },
       ]);
     } finally {
-      setIsLoading(false);
+      setIsRunningSimulation(false);
     }
   };
 
@@ -105,11 +110,51 @@ export function WorkflowTestPanel() {
           )}
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
-          <button type="button" onClick={loadAutomations} style={{ padding: '8px 12px', borderRadius: 10, border: '1px solid #2563eb', background: '#dbeafe' }}>
-            Load automations
+          <button
+            type="button"
+            onClick={loadAutomations}
+            disabled={isLoadingAutomations}
+            style={{
+              padding: '8px 16px',
+              borderRadius: 8,
+              border: 'none',
+              background: isLoadingAutomations ? '#93c5fd' : '#2563eb',
+              color: '#fff',
+              fontSize: 14,
+              fontWeight: 500,
+              cursor: isLoadingAutomations ? 'not-allowed' : 'pointer',
+              opacity: isLoadingAutomations ? 0.7 : 1,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              transition: 'all 0.2s ease',
+            }}
+          >
+            {isLoadingAutomations && <Spinner size={16} color="#fff" />}
+            {isLoadingAutomations ? 'Loading automations...' : 'Load automations'}
           </button>
-          <button type="button" onClick={runSimulation} disabled={isLoading || !structuralValidation.valid} style={{ padding: '8px 12px', borderRadius: 10, border: '1px solid #16a34a', background: isLoading ? '#f8fafc' : '#dcfce7' }}>
-            {isLoading ? 'Running simulation…' : 'Run Simulation'}
+          <button
+            type="button"
+            onClick={runSimulation}
+            disabled={isRunningSimulation || !structuralValidation.valid}
+            style={{
+              padding: '8px 16px',
+              borderRadius: 8,
+              border: 'none',
+              background: isRunningSimulation || !structuralValidation.valid ? '#86efac' : '#16a34a',
+              color: '#fff',
+              fontSize: 14,
+              fontWeight: 500,
+              cursor: isRunningSimulation || !structuralValidation.valid ? 'not-allowed' : 'pointer',
+              opacity: isRunningSimulation || !structuralValidation.valid ? 0.7 : 1,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              transition: 'all 0.2s ease',
+            }}
+          >
+            {isRunningSimulation && <Spinner size={16} color="#fff" />}
+            {isRunningSimulation ? 'Running simulation...' : 'Run simulation'}
           </button>
         </div>
         <div style={{ display: 'grid', gap: 8 }}>

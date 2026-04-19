@@ -14,6 +14,8 @@ export function EndNodeForm() {
     <NodeFormPanel
       title="End node"
       subtitle="Finalize the workflow exit step"
+      nodeType={selected?.type}
+      nodeId={selected?.id}
       hasSelection={Boolean(isEndNode)}
       validationErrors={isEndNode ? validationErrors : []}
       onSubmit={() => {

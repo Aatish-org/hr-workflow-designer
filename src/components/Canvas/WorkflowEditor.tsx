@@ -25,6 +25,11 @@ import { TaskNode } from '../Nodes/TaskNode';
 import { ApprovalNode } from '../Nodes/ApprovalNode';
 import { AutomatedStepNode } from '../Nodes/AutomatedStepNode';
 import { EndNode } from '../Nodes/EndNode';
+import { TaskNodeForm } from '../Forms/TaskNodeForm';
+import { ApprovalNodeForm } from '../Forms/ApprovalNodeForm';
+import { AutomatedStepNodeForm } from '../Forms/AutomatedStepNodeForm';
+import { StartNodeForm } from '../Forms/StartNodeForm';
+import { EndNodeForm } from '../Forms/EndNodeForm';
 import { useWorkflowStore } from '../../stores/workflowStore';
 import 'reactflow/dist/style.css';
 
@@ -153,6 +158,35 @@ export function WorkflowEditor() {
 
   const selectedNode = getSelectedNode();
 
+  const renderSelectedNodeForm = () => {
+    if (!selectedNode) {
+      return (
+        <div style={{ padding: 16, color: '#6b7280', fontSize: 14 }}>
+          Select a node on the canvas to edit it.
+        </div>
+      );
+    }
+
+    switch (selectedNode.type) {
+      case 'start':
+        return <StartNodeForm />;
+      case 'task':
+        return <TaskNodeForm />;
+      case 'approval':
+        return <ApprovalNodeForm />;
+      case 'automatedStep':
+        return <AutomatedStepNodeForm />;
+      case 'end':
+        return <EndNodeForm />;
+      default:
+        return (
+          <div style={{ padding: 16, color: '#6b7280', fontSize: 14 }}>
+            Unknown node type: {selectedNode.type}
+          </div>
+        );
+    }
+  };
+
   return (
     <div style={{ display: 'flex', height: 'calc(100vh - 48px)', minHeight: 760, border: '1px solid #e5e7eb', borderRadius: 18, overflow: 'hidden', background: '#fff' }}>
       <div style={{ width: 220, flexShrink: 0 }}>
@@ -242,7 +276,7 @@ export function WorkflowEditor() {
         </ReactFlow>
       </div>
       <div style={{ width: 360, flexShrink: 0, borderLeft: '1px solid #e5e7eb' }}>
-        {/* Right form panel placeholder */}
+        {renderSelectedNodeForm()}
       </div>
     </div>
   );

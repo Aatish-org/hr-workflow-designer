@@ -1,6 +1,8 @@
 interface NodeFormPanelProps {
   title: string;
   subtitle?: string;
+  nodeType?: string;
+  nodeId?: string;
   children?: React.ReactNode;
   onSubmit?: () => void;
   onReset?: () => void;
@@ -44,9 +46,29 @@ const disabledButtonStyle: React.CSSProperties = {
   cursor: 'not-allowed',
 };
 
+// Node type color mapping
+const nodeTypeColors: Record<string, { bg: string; text: string; border: string }> = {
+  start: { bg: '#dbeafe', text: '#1e40af', border: '#93c5fd' },
+  task: { bg: '#dcfce7', text: '#15803d', border: '#86efac' },
+  approval: { bg: '#fed7aa', text: '#92400e', border: '#fdba74' },
+  automatedStep: { bg: '#e9d5ff', text: '#6b21a8', border: '#d8b4fe' },
+  end: { bg: '#fee2e2', text: '#991b1b', border: '#fca5a5' },
+};
+
+// Node type display names
+const nodeTypeLabels: Record<string, string> = {
+  start: 'Start',
+  task: 'Task',
+  approval: 'Approval',
+  automatedStep: 'Automated Step',
+  end: 'End',
+};
+
 export function NodeFormPanel({
   title,
   subtitle,
+  nodeType,
+  nodeId,
   children,
   onSubmit,
   onReset,
@@ -57,6 +79,9 @@ export function NodeFormPanel({
   hasSelection = true,
   validationErrors = [],
 }: NodeFormPanelProps) {
+  const colors = nodeType ? nodeTypeColors[nodeType] : null;
+  const typeLabel = nodeType ? nodeTypeLabels[nodeType] : null;
+
   return (
     <section style={{
       height: '100%',
@@ -66,8 +91,34 @@ export function NodeFormPanel({
       borderLeft: '1px solid #e5e7eb'
     }}>
       <div style={{ padding: 16, borderBottom: '1px solid #e5e7eb' }}>
-        <h3 style={{ margin: 0, fontSize: 18, fontWeight: 'bold' }}>Node Configuration</h3>
-        {subtitle ? <p style={{ margin: '4px 0 0', color: '#6b7280', fontSize: 14 }}>{subtitle}</p> : null}
+        <h3 style={{ margin: 0, fontSize: 18, fontWeight: 'bold', color: '#111827' }}>
+          Node Configuration
+        </h3>
+        {nodeType && typeLabel && colors && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                padding: '4px 10px',
+                borderRadius: 6,
+                fontSize: 13,
+                fontWeight: 600,
+                background: colors.bg,
+                color: colors.text,
+                border: `1px solid ${colors.border}`,
+              }}
+            >
+              {typeLabel}
+            </span>
+            {nodeId && (
+              <span style={{ fontSize: 12, color: '#9ca3af', fontFamily: 'monospace' }}>
+                #{nodeId}
+              </span>
+            )}
+          </div>
+        )}
+        {subtitle ? <p style={{ margin: '8px 0 0', color: '#6b7280', fontSize: 13, lineHeight: 1.5 }}>{subtitle}</p> : null}
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: 16 }}>

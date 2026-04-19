@@ -14,6 +14,8 @@ export function TaskNodeForm() {
     <NodeFormPanel
       title="Task node"
       subtitle="Edit the task title and description"
+      nodeType={selected?.type}
+      nodeId={selected?.id}
       hasSelection={Boolean(isTaskNode)}
       validationErrors={isTaskNode ? validationErrors : []}
       onSubmit={() => {

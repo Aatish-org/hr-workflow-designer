@@ -14,6 +14,8 @@ export function StartNodeForm() {
     <NodeFormPanel
       title="Start node"
       subtitle="Configure the starting step of the workflow"
+      nodeType={selected?.type}
+      nodeId={selected?.id}
       hasSelection={Boolean(isStartNode)}
       validationErrors={isStartNode ? validationErrors : []}
       onSubmit={() => {
