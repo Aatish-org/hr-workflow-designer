@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { Edge, Node } from 'reactflow';
-import type { WorkflowNodeData, WorkflowNodeDefinition, WorkflowNodeType } from '../types/workflow';
+import type { WorkflowNodeData, WorkflowNodeDefinition, WorkflowNodeType, WorkflowNodeUpdatePayload } from '../types/workflow';
+import { validateWorkflowStructure } from '../utils/validation';
 
 export interface WorkflowStoreState {
   nodes: Node<WorkflowNodeData>[];
@@ -10,20 +11,22 @@ export interface WorkflowStoreState {
   setNodes: (nodes: Node<WorkflowNodeData>[]) => void;
   setEdges: (edges: Edge[]) => void;
   addNode: (node: Node<WorkflowNodeData>) => void;
-  updateNode: (nodeId: string, data: WorkflowNodeData) => void;
+  updateNode: <T extends WorkflowNodeType>(nodeId: string, nodeType: T, data: WorkflowNodeUpdatePayload<T>) => void;
   deleteNode: (nodeId: string) => void;
   selectNode: (nodeId: string | null) => void;
   setActiveNodeType: (nodeType: WorkflowNodeType | null) => void;
   getSelectedNode: () => Node<WorkflowNodeData> | undefined;
   syncFromDefinitions: (definitions: WorkflowNodeDefinition[]) => void;
+  validationErrors: string[];
+  validateWorkflow: () => void;
 }
 
 const initialNodes: Node<WorkflowNodeData>[] = [
-  { id: 'start-1', type: 'start', position: { x: 120, y: 120 }, data: { label: 'Start' } },
-  { id: 'task-1', type: 'task', position: { x: 380, y: 120 }, data: { label: 'Review request' } },
-  { id: 'approval-1', type: 'approval', position: { x: 650, y: 120 }, data: { label: 'Manager approval' } },
-  { id: 'automated-1', type: 'automatedStep', position: { x: 920, y: 120 }, data: { label: 'Provision access' } },
-  { id: 'end-1', type: 'end', position: { x: 1190, y: 120 }, data: { label: 'End' } },
+  { id: 'start-1', type: 'start', position: { x: 120, y: 120 }, data: { nodeType: 'start', label: 'Start', trigger: 'manual' } },
+  { id: 'task-1', type: 'task', position: { x: 380, y: 120 }, data: { nodeType: 'task', label: 'Review request', assignee: 'HR' } },
+  { id: 'approval-1', type: 'approval', position: { x: 650, y: 120 }, data: { nodeType: 'approval', label: 'Manager approval', approverRole: 'Manager', requiredApprovalCount: 1 } },
+  { id: 'automated-1', type: 'automatedStep', position: { x: 920, y: 120 }, data: { nodeType: 'automatedStep', label: 'Provision access', automationKey: 'provision-access' } },
+  { id: 'end-1', type: 'end', position: { x: 1190, y: 120 }, data: { nodeType: 'end', label: 'End', outcome: 'complete' } },
 ];
 
 const initialEdges: Edge[] = [
@@ -33,17 +36,31 @@ const initialEdges: Edge[] = [
   { id: 'e-auto-end', source: 'automated-1', target: 'end-1', type: 'smoothstep' },
 ];
 
+function toWorkflowDefinitions(nodes: Node<WorkflowNodeData>[]): WorkflowNodeDefinition[] {
+  return nodes.map((node) => ({
+    id: node.id,
+    type: node.type,
+    data: node.data,
+    position: node.position,
+  })) as WorkflowNodeDefinition[];
+}
+
 export const useWorkflowStore = create<WorkflowStoreState>((set, get) => ({
   nodes: initialNodes,
   edges: initialEdges,
   selectedNodeId: null,
   activeNodeType: null,
+  validationErrors: [],
   setNodes: (nodes) => set({ nodes }),
   setEdges: (edges) => set({ edges }),
   addNode: (node) => set((state) => ({ nodes: [...state.nodes, node], activeNodeType: node.type as WorkflowNodeType })),
-  updateNode: (nodeId, data) =>
+  updateNode: (nodeId, nodeType, data) =>
     set((state) => ({
-      nodes: state.nodes.map((node) => (node.id === nodeId ? { ...node, data } : node)),
+      nodes: state.nodes.map((node) =>
+        node.id === nodeId && node.type === nodeType
+          ? { ...node, data: { ...data, nodeType } as WorkflowNodeData }
+          : node,
+      ),
     })),
   deleteNode: (nodeId) =>
     set((state) => ({
@@ -66,4 +83,8 @@ export const useWorkflowStore = create<WorkflowStoreState>((set, get) => ({
         data: definition.data,
       })),
     }),
+  validateWorkflow: () => {
+    const result = validateWorkflowStructure(toWorkflowDefinitions(get().nodes), get().edges);
+    set({ validationErrors: result.errors });
+  },
 }));

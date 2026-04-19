@@ -11,6 +11,11 @@ export interface WorkflowExecutionResult {
   logs: WorkflowExecutionLog[];
 }
 
+export interface WorkflowSimulationResponse {
+  automationCount: number;
+  logs: string[];
+}
+
 export async function simulateWorkflowExecution(nodes: WorkflowNodeDefinition[]): Promise<WorkflowExecutionResult> {
   const automationCount = nodes.filter((node) => node.type === 'automatedStep').length;
   const logs: WorkflowExecutionLog[] = [

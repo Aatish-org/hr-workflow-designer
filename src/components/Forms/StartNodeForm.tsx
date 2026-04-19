@@ -1,34 +1,36 @@
+import { useState } from 'react';
 import { ControlledField } from './ControlledField';
 import { NodeFormPanel } from './NodeFormPanel';
 import { useWorkflowStore } from '../../stores/workflowStore';
 
 export function StartNodeForm() {
-  const { getSelectedNode, updateNode, deleteNode } = useWorkflowStore();
+  const { getSelectedNode, updateNode, deleteNode, validationErrors, validateWorkflow } = useWorkflowStore();
   const selected = getSelectedNode();
   const isStartNode = selected?.type === 'start';
-  const label = isStartNode ? selected.data.label : 'Start';
-  const description = isStartNode ? selected.data.description ?? '' : '';
+  const [label, setLabel] = useState(isStartNode ? selected.data.label : 'Start');
+  const [description, setDescription] = useState(isStartNode ? selected.data.description ?? '' : '');
 
   return (
     <NodeFormPanel
       title="Start node"
       subtitle="Configure the starting step of the workflow"
       hasSelection={Boolean(isStartNode)}
-      onSubmit={() => selected && isStartNode && updateNode(selected.id, { label, description: description || undefined })}
-      onReset={() => selected && isStartNode && updateNode(selected.id, { label: 'Start', description: undefined })}
+      validationErrors={isStartNode ? validationErrors : []}
+      onSubmit={() => {
+        if (!selected || !isStartNode) return;
+        updateNode(selected.id, 'start', { label, description: description || undefined, trigger: selected.data.trigger ?? 'manual' });
+        validateWorkflow();
+      }}
+      onReset={() => {
+        if (!selected || !isStartNode) return;
+        setLabel('Start');
+        setDescription('');
+        updateNode(selected.id, 'start', { label: 'Start', description: undefined, trigger: 'manual' });
+      }}
       onDelete={() => selected && isStartNode && deleteNode(selected.id)}
     >
-      <ControlledField
-        label="Label"
-        value={label}
-        onChange={(value) => selected && isStartNode && updateNode(selected.id, { ...selected.data, label: value })}
-      />
-      <ControlledField
-        label="Description"
-        value={description}
-        onChange={(value) => selected && isStartNode && updateNode(selected.id, { ...selected.data, description: value })}
-        placeholder="Optional"
-      />
+      <ControlledField label="Label" value={label} onChange={setLabel} />
+      <ControlledField label="Description" value={description} onChange={setDescription} placeholder="Optional" />
     </NodeFormPanel>
   );
 }

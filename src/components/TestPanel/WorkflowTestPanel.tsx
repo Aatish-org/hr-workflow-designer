@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
 import { apiClient, ApiError } from '../../api/client';
 import { serializeWorkflow } from '../../utils/serialization';
+import { validateWorkflowStructure, type WorkflowValidationResult } from '../../utils/validation';
 import type { WorkflowNodeDefinition, WorkflowNodeType } from '../../types/workflow';
 import { useWorkflowStore } from '../../stores/workflowStore';
-import { simulateWorkflowExecution, type WorkflowExecutionLog } from './workflowExecution';
+import { simulateWorkflowExecution, type WorkflowExecutionLog, type WorkflowSimulationResponse } from './workflowExecution';
 
 interface AutomationItem {
   id: string;
@@ -11,13 +12,8 @@ interface AutomationItem {
   description: string;
 }
 
-interface SimulationResponse {
-  automationCount: number;
-  logs: string[];
-}
-
 export function WorkflowTestPanel() {
-  const { nodes } = useWorkflowStore();
+  const { nodes, edges, validationErrors } = useWorkflowStore();
   const [automationItems, setAutomationItems] = useState<AutomationItem[]>([]);
   const [logs, setLogs] = useState<WorkflowExecutionLog[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -35,6 +31,7 @@ export function WorkflowTestPanel() {
   );
 
   const workflowJson = useMemo(() => serializeWorkflow(workflowDefinition), [workflowDefinition]);
+  const structuralValidation = useMemo<WorkflowValidationResult>(() => validateWorkflowStructure(workflowDefinition, edges), [workflowDefinition, edges]);
 
   const loadAutomations = async () => {
     setErrorMessage(null);
@@ -49,27 +46,34 @@ export function WorkflowTestPanel() {
   const runSimulation = async () => {
     setIsLoading(true);
     setErrorMessage(null);
+    setLogs([]);
+
     try {
-      const [localExecution, remoteExecution, automationResponse] = await Promise.all([
-        simulateWorkflowExecution(workflowDefinition),
-        apiClient.get<SimulationResponse>('/api/simulate'),
+      const localExecution = await simulateWorkflowExecution(workflowDefinition);
+      setLogs(localExecution.logs);
+
+      const [simulationResponse, automationResponse] = await Promise.all([
+        apiClient.get<WorkflowSimulationResponse>(`/api/simulate?workflow=${encodeURIComponent(workflowJson)}`),
         apiClient.get<{ automations: AutomationItem[] }>('/api/automations'),
       ]);
 
-      const combinedLogs: WorkflowExecutionLog[] = [
-        ...localExecution.logs,
-        { timestamp: new Date().toISOString(), level: 'info' as const, message: `Mock API reports ${remoteExecution.automationCount} automated step(s).` },
-        ...remoteExecution.logs.map((message, index) => ({
+      setLogs((current) => [
+        ...current,
+        { timestamp: new Date().toISOString(), level: 'info', message: `Mock API reports ${simulationResponse.automationCount} automated step(s).` },
+        ...simulationResponse.logs.map((message, index) => ({
           timestamp: new Date().toISOString(),
-          level: (index === remoteExecution.logs.length - 1 ? 'success' : 'info') as WorkflowExecutionLog['level'],
+          level: (index === simulationResponse.logs.length - 1 ? 'success' : 'info') as WorkflowExecutionLog['level'],
           message,
         })),
-      ];
+      ]);
 
       setAutomationItems(automationResponse.automations);
-      setLogs(combinedLogs);
     } catch (error) {
       setErrorMessage(error instanceof ApiError ? `Simulation failed (${error.status}).` : 'Simulation failed.');
+      setLogs((current) => [
+        ...current,
+        { timestamp: new Date().toISOString(), level: 'error', message: 'Simulation request failed.' },
+      ]);
     } finally {
       setIsLoading(false);
     }
@@ -81,12 +85,31 @@ export function WorkflowTestPanel() {
         <h3 style={{ marginTop: 0 }}>Workflow test / sandbox</h3>
         <p style={{ color: '#64748b' }}>Serialize the current workflow, load mocked automations, and simulate execution.</p>
         {errorMessage ? <p style={{ color: '#b91c1c', marginTop: 0 }}>{errorMessage}</p> : null}
+        {validationErrors.length > 0 ? (
+          <ul style={{ margin: '0 0 12px', paddingLeft: 18, color: '#7f1d1d' }}>
+            {validationErrors.map((error) => (
+              <li key={error}>{error}</li>
+            ))}
+          </ul>
+        ) : null}
+        <div style={{ display: 'grid', gap: 8, marginBottom: 12 }}>
+          <strong>Structural checks</strong>
+          {structuralValidation.errors.length > 0 ? (
+            <ul style={{ margin: 0, paddingLeft: 18, color: '#7f1d1d' }}>
+              {structuralValidation.errors.map((error) => (
+                <li key={error}>{error}</li>
+              ))}
+            </ul>
+          ) : (
+            <span style={{ color: '#166534' }}>Workflow structure looks valid.</span>
+          )}
+        </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
           <button type="button" onClick={loadAutomations} style={{ padding: '8px 12px', borderRadius: 10, border: '1px solid #2563eb', background: '#dbeafe' }}>
             Load automations
           </button>
-          <button type="button" onClick={runSimulation} disabled={isLoading} style={{ padding: '8px 12px', borderRadius: 10, border: '1px solid #16a34a', background: isLoading ? '#f8fafc' : '#dcfce7' }}>
-            {isLoading ? 'Running simulation…' : 'Run simulation'}
+          <button type="button" onClick={runSimulation} disabled={isLoading || !structuralValidation.valid} style={{ padding: '8px 12px', borderRadius: 10, border: '1px solid #16a34a', background: isLoading ? '#f8fafc' : '#dcfce7' }}>
+            {isLoading ? 'Running simulation…' : 'Run Simulation'}
           </button>
         </div>
         <div style={{ display: 'grid', gap: 8 }}>

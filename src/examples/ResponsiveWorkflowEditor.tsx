@@ -15,17 +15,18 @@ import {
   type NodeChange,
   type NodeTypes,
 } from 'reactflow';
-import { NodeSidebar } from './NodeSidebar';
-import { useNodeSelection } from '../../hooks/useNodeSelection';
-import { useWorkflowValidation } from '../../hooks/useWorkflowValidation';
-import { deserializeWorkflow, serializeWorkflow } from '../../utils/serialization';
-import type { WorkflowNodeData, WorkflowNodeDefinition, WorkflowNodeType } from '../../types/workflow';
-import { StartNode } from '../Nodes/StartNode';
-import { TaskNode } from '../Nodes/TaskNode';
-import { ApprovalNode } from '../Nodes/ApprovalNode';
-import { AutomatedStepNode } from '../Nodes/AutomatedStepNode';
-import { EndNode } from '../Nodes/EndNode';
-import { useWorkflowStore } from '../../stores/workflowStore';
+import { NodeSidebar } from '../components/Canvas/NodeSidebar';
+import { useNodeSelection } from '../hooks/useNodeSelection';
+import { useWorkflowValidation } from '../hooks/useWorkflowValidation';
+import { deserializeWorkflow, serializeWorkflow } from '../utils/serialization';
+import type { WorkflowNodeData, WorkflowNodeDefinition, WorkflowNodeType } from '../types/workflow';
+import { StartNode } from '../components/Nodes/StartNode';
+import { TaskNode } from '../components/Nodes/TaskNode';
+import { ApprovalNode } from '../components/Nodes/ApprovalNode';
+import { AutomatedStepNode } from '../components/Nodes/AutomatedStepNode';
+import { EndNode } from '../components/Nodes/EndNode';
+import { useWorkflowStore } from '../stores/workflowStore';
+import styles from '../components/Canvas/WorkflowEditor.module.css';
 import 'reactflow/dist/style.css';
 
 const nodeTypes: NodeTypes = {
@@ -70,10 +71,19 @@ function makeNode(type: WorkflowNodeType, position: { x: number; y: number }): N
   };
 }
 
-export function WorkflowEditor() {
+/**
+ * Responsive WorkflowEditor Component
+ *
+ * Breakpoints:
+ * - Desktop: > 1024px (3 columns: 220px | flex | 360px)
+ * - Tablet: 768px - 1024px (3 columns: 180px | flex | 280px)
+ * - Mobile: < 768px (stacked: toolbar + canvas + form panel)
+ */
+export function ResponsiveWorkflowEditor() {
   const [nodes, setNodes] = useState(initialWorkflowNodes);
   const [edges, setEdges] = useState(initialEdges);
   const [showJson, setShowJson] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(false);
   const { selectedNodeId, setSelectedNodeId } = useNodeSelection<string>();
   const { setNodes: setStoreNodes, setEdges: setStoreEdges, selectNode, deleteNode, getSelectedNode } = useWorkflowStore();
 
@@ -154,11 +164,25 @@ export function WorkflowEditor() {
   const selectedNode = getSelectedNode();
 
   return (
-    <div style={{ display: 'flex', height: 'calc(100vh - 48px)', minHeight: 760, border: '1px solid #e5e7eb', borderRadius: 18, overflow: 'hidden', background: '#fff' }}>
-      <div style={{ width: 220, flexShrink: 0 }}>
+    <div className={styles.workflowContainer}>
+      {/* Mobile toolbar - only visible on mobile */}
+      <div className={styles.mobileToolbar}>
+        <button
+          type="button"
+          className={`${styles.toggleButton} ${showSidebar ? styles.active : ''}`}
+          onClick={() => setShowSidebar(!showSidebar)}
+        >
+          ☰ {showSidebar ? 'Hide' : 'Show'} Nodes
+        </button>
+      </div>
+
+      {/* Left sidebar */}
+      <div className={`${styles.leftSidebar} ${showSidebar ? styles.visible : ''}`}>
         <NodeSidebar onDragStart={onDragStart} />
       </div>
-      <div style={{ flex: 1, position: 'relative' }}>
+
+      {/* Canvas area */}
+      <div className={styles.canvasArea}>
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -241,8 +265,16 @@ export function WorkflowEditor() {
           </Panel>
         </ReactFlow>
       </div>
-      <div style={{ width: 360, flexShrink: 0, borderLeft: '1px solid #e5e7eb' }}>
-        {/* Right form panel placeholder */}
+
+      {/* Right panel */}
+      <div className={styles.rightPanel}>
+        {/* Your form panel content goes here */}
+        <div style={{ padding: 16 }}>
+          <h3 style={{ margin: 0, fontSize: 18, fontWeight: 'bold' }}>Node Configuration</h3>
+          <p style={{ margin: '4px 0 0', color: '#6b7280', fontSize: 14 }}>
+            {selectedNode ? selectedNode.data.label : 'Select a node to edit'}
+          </p>
+        </div>
       </div>
     </div>
   );

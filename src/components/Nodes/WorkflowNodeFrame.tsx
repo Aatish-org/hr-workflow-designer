@@ -16,10 +16,13 @@ export function WorkflowNodeFrame({ data, selected, title, accentColor, kind, ch
       style={{
         minWidth: 180,
         borderRadius: 16,
-        border: selected ? `2px solid ${accentColor}` : '1px solid #d1d5db',
+        border: selected ? '3px solid #2563eb' : '1px solid #d1d5db',
         background: '#fff',
-        boxShadow: selected ? `0 0 0 4px ${accentColor}22` : '0 8px 24px rgba(15, 23, 42, 0.08)',
+        boxShadow: selected
+          ? '0 0 0 4px rgba(37, 99, 235, 0.2), 0 8px 24px rgba(15, 23, 42, 0.12)'
+          : '0 8px 24px rgba(15, 23, 42, 0.08)',
         overflow: 'hidden',
+        transition: 'border 0.2s, box-shadow 0.2s',
       }}
     >
       <Handle type="target" position={Position.Left} style={{ background: accentColor }} />

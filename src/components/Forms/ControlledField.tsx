@@ -13,7 +13,7 @@ export function ControlledField({ label, value, onChange, placeholder, type = 't
 
   return (
     <label htmlFor={id} style={{ display: 'grid', gap: 6 }}>
-      <span style={{ fontSize: 14, fontWeight: 600 }}>{label}</span>
+      <span style={{ fontSize: 14, fontWeight: 600, color: '#374151' }}>{label}</span>
       <input
         id={id}
         type={type}
@@ -22,11 +22,21 @@ export function ControlledField({ label, value, onChange, placeholder, type = 't
         placeholder={placeholder}
         aria-label={label}
         style={{
-          border: '1px solid #cbd5e1',
-          borderRadius: 10,
+          background: '#fff',
+          border: '1px solid #e5e7eb',
+          borderRadius: 8,
           padding: '10px 12px',
           fontSize: 14,
           outline: 'none',
+          transition: 'border-color 0.15s, box-shadow 0.15s',
+        }}
+        onFocus={(e) => {
+          e.target.style.borderColor = '#2563eb';
+          e.target.style.boxShadow = '0 0 0 3px rgba(37, 99, 235, 0.1)';
+        }}
+        onBlur={(e) => {
+          e.target.style.borderColor = '#e5e7eb';
+          e.target.style.boxShadow = 'none';
         }}
       />
     </label>

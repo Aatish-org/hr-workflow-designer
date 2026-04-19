@@ -1,0 +1,137 @@
+/* Desktop layout (default) */
+.workflowContainer {
+  display: flex;
+  height: calc(100vh - 48px);
+  min-height: 760px;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.leftSidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: #fff;
+  border-right: 1px solid #e5e7eb;
+}
+
+.canvasArea {
+  flex: 1;
+  position: relative;
+}
+
+.rightPanel {
+  width: 360px;
+  flex-shrink: 0;
+  border-left: 1px solid #e5e7eb;
+}
+
+/* Tablet layout (768px - 1024px) */
+@media (max-width: 1024px) {
+  .workflowContainer {
+    min-height: 600px;
+    border-radius: 12px;
+  }
+
+  /* Reduce sidebar width */
+  .leftSidebar {
+    width: 180px;
+  }
+
+  /* Reduce right panel width */
+  .rightPanel {
+    width: 280px;
+  }
+}
+
+/* Mobile landscape / Small tablet (max-width: 768px) */
+@media (max-width: 768px) {
+  .workflowContainer {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+    border-radius: 0;
+    border: none;
+  }
+
+  /* Hide left sidebar by default on mobile - use a toggle button instead */
+  .leftSidebar {
+    display: none;
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #e5e7eb;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  .leftSidebar.visible {
+    display: block;
+  }
+
+  /* Canvas takes full width */
+  .canvasArea {
+    height: 60vh;
+    min-height: 400px;
+  }
+
+  /* Right panel moves to bottom */
+  .rightPanel {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid #e5e7eb;
+    max-height: 50vh;
+    overflow-y: auto;
+  }
+}
+
+/* Mobile portrait (max-width: 480px) */
+@media (max-width: 480px) {
+  .canvasArea {
+    height: 50vh;
+    min-height: 300px;
+  }
+
+  .rightPanel {
+    max-height: 60vh;
+  }
+}
+
+/* Mobile toolbar for toggling sidebar */
+.mobileToolbar {
+  display: none;
+  padding: 12px 16px;
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+  gap: 8px;
+}
+
+@media (max-width: 768px) {
+  .mobileToolbar {
+    display: flex;
+  }
+}
+
+.toggleButton {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.toggleButton:hover {
+  background: #f9fafb;
+}
+
+.toggleButton.active {
+  background: #2563eb;
+  color: #fff;
+  border-color: #2563eb;
+}
