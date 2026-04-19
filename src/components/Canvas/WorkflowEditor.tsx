@@ -46,8 +46,8 @@ const nodeTypes: NodeTypes = {
 const initialWorkflowNodes: Node<WorkflowNodeData>[] = [
   { id: 'start-1', type: 'start', position: { x: 120, y: 120 }, data: { nodeType: 'start', label: 'User Initializing', description: 'Initializing for Automation', trigger: 'manual' } },
   { id: 'task-1', type: 'task', position: { x: 420, y: 120 }, data: { nodeType: 'task', label: 'Data Collection', description: 'Collecting applicant records', assignee: 'HR' } },
-  { id: 'approval-1', type: 'approval', position: { x: 730, y: 120 }, data: { nodeType: 'approval', label: 'Policy Approval', description: 'Approver confirmation step', approverRole: 'Manager', requiredApprovalCount: 1 } },
-  { id: 'automated-1', type: 'automatedStep', position: { x: 1040, y: 120 }, data: { nodeType: 'automatedStep', label: 'Automation Dispatch', description: 'Executing downstream tasks', automationKey: 'provision-access' } },
+  { id: 'approval-1', type: 'approval', position: { x: 730, y: 120 }, data: { nodeType: 'approval', label: 'Policy Approval', description: 'Approver confirmation step', approverRole: 'Manager', reviewerCount: 2 } },
+  { id: 'automated-1', type: 'automatedStep', position: { x: 1040, y: 120 }, data: { nodeType: 'automatedStep', label: 'Automation Dispatch', description: 'Executing downstream tasks', automationKey: 'notify-slack' } },
   { id: 'end-1', type: 'end', position: { x: 1350, y: 120 }, data: { nodeType: 'end', label: 'Completion', description: 'Workflow finished', outcome: 'complete' } },
 ];
 
@@ -188,7 +188,7 @@ export function WorkflowEditor() {
   };
 
   return (
-    <div style={{ display: 'flex', height: 'calc(100vh - 48px)', minHeight: 760, border: '1px solid #e5e7eb', borderRadius: 18, overflow: 'hidden', background: '#fff' }}>
+    <div style={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden', background: '#fff' }}>
       <div style={{ width: 220, flexShrink: 0, borderRight: '1px solid #e5e7eb' }}>
         <NodeSidebar onDragStart={onDragStart} />
       </div>
@@ -220,7 +220,7 @@ export function WorkflowEditor() {
               <span>Edges: {edges.length}</span>
               <span>Template nodes: {emptyWorkflow.length}</span>
               <span>Selected: {selectedNode?.data.label ?? 'none'}</span>
-              <button type="button" onClick={deleteSelectedNode} disabled={!selectedNodeId} style={{ padding: '8px 12px', borderRadius: 10, border: '1px solid #ef4444', background: selectedNodeId ? '#fee2e2' : '#f8fafc', cursor: selectedNodeId ? 'pointer' : 'not-allowed' }}>
+              <button type="button" onClick={deleteSelectedNode} disabled={!selectedNodeId} style={{ padding: '8px 12px', borderRadius: 10, border: '1px solid #ef4444', background: selectedNodeId ? '#ef4444' : '#fee2e2', color: selectedNodeId ? '#fff' : '#991b1b', cursor: selectedNodeId ? 'pointer' : 'not-allowed', fontWeight: 600 }}>
                 Delete selected node
               </button>
             </div>
