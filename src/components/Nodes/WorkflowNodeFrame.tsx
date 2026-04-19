@@ -41,7 +41,7 @@ export function WorkflowNodeFrame({ id, data, selected, title, accentColor, kind
           <strong>{data.label || title}</strong>
           <span style={{ fontSize: 12, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.6 }}>{kind}</span>
         </div>
-        <div style={{ marginTop: 6, color: '#64748b', fontSize: 13 }}>{data.description ?? 'Initializing for Automation'}</div>
+        {data.description ? <div style={{ marginTop: 6, color: '#64748b', fontSize: 13 }}>{data.description}</div> : null}
         <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 6 }}>
           {metricItems.map((item) => (
             <div key={item.label} style={{ borderRadius: 8, padding: '6px 8px', background: item.background }}>
