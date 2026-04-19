@@ -31,6 +31,7 @@ import { AutomatedStepNodeForm } from '../Forms/AutomatedStepNodeForm';
 import { StartNodeForm } from '../Forms/StartNodeForm';
 import { EndNodeForm } from '../Forms/EndNodeForm';
 import { useWorkflowStore } from '../../stores/workflowStore';
+import { PerformanceMetricsPanel } from '../Metrics/PerformanceMetricsPanel';
 import 'reactflow/dist/style.css';
 
 const nodeTypes: NodeTypes = {
@@ -42,11 +43,11 @@ const nodeTypes: NodeTypes = {
 };
 
 const initialWorkflowNodes: Node<WorkflowNodeData>[] = [
-  { id: 'start-1', type: 'start', position: { x: 120, y: 120 }, data: { label: 'Start' } },
-  { id: 'task-1', type: 'task', position: { x: 380, y: 120 }, data: { label: 'Review request' } },
-  { id: 'approval-1', type: 'approval', position: { x: 650, y: 120 }, data: { label: 'Manager approval' } },
-  { id: 'automated-1', type: 'automatedStep', position: { x: 920, y: 120 }, data: { label: 'Provision access' } },
-  { id: 'end-1', type: 'end', position: { x: 1190, y: 120 }, data: { label: 'End' } },
+  { id: 'start-1', type: 'start', position: { x: 120, y: 120 }, data: { nodeType: 'start', label: 'User Initializing', description: 'Initializing for Automation', trigger: 'manual' } },
+  { id: 'task-1', type: 'task', position: { x: 420, y: 120 }, data: { nodeType: 'task', label: 'Data Collection', description: 'Collecting applicant records', assignee: 'HR' } },
+  { id: 'approval-1', type: 'approval', position: { x: 730, y: 120 }, data: { nodeType: 'approval', label: 'Policy Approval', description: 'Approver confirmation step', approverRole: 'Manager', requiredApprovalCount: 1 } },
+  { id: 'automated-1', type: 'automatedStep', position: { x: 1040, y: 120 }, data: { nodeType: 'automatedStep', label: 'Automation Dispatch', description: 'Executing downstream tasks', automationKey: 'provision-access' } },
+  { id: 'end-1', type: 'end', position: { x: 1350, y: 120 }, data: { nodeType: 'end', label: 'Completion', description: 'Workflow finished', outcome: 'complete' } },
 ];
 
 const initialEdges: Edge[] = [
@@ -71,7 +72,7 @@ function makeNode(type: WorkflowNodeType, position: { x: number; y: number }): N
     id: `${type}-${Date.now()}`,
     type,
     position,
-    data: { label: labelMap[type] },
+    data: { nodeType: type, label: labelMap[type], description: 'Initializing for Automation' },
   };
 }
 
@@ -80,7 +81,7 @@ export function WorkflowEditor() {
   const [edges, setEdges] = useState(initialEdges);
   const [showJson, setShowJson] = useState(false);
   const { selectedNodeId, setSelectedNodeId } = useNodeSelection<string>();
-  const { setNodes: setStoreNodes, setEdges: setStoreEdges, selectNode, deleteNode, getSelectedNode } = useWorkflowStore();
+  const { setNodes: setStoreNodes, setEdges: setStoreEdges, selectNode, deleteNode, getSelectedNode, setNodeExecutionStats } = useWorkflowStore();
 
   const workflowNodes = useMemo(() => nodes.map((node) => ({
     id: node.id,
@@ -142,7 +143,9 @@ export function WorkflowEditor() {
     };
 
     setNodes((current) => {
-      const next = [...current, makeNode(type, position)];
+      const createdNode = makeNode(type, position);
+      const next = [...current, createdNode];
+      setNodeExecutionStats(createdNode.id, { failures: 11, total: 27, successes: 41, pending: 72 });
       setStoreNodes(next);
       return next;
     });
@@ -189,7 +192,7 @@ export function WorkflowEditor() {
 
   return (
     <div style={{ display: 'flex', height: 'calc(100vh - 48px)', minHeight: 760, border: '1px solid #e5e7eb', borderRadius: 18, overflow: 'hidden', background: '#fff' }}>
-      <div style={{ width: 220, flexShrink: 0 }}>
+      <div style={{ width: 220, flexShrink: 0, borderRight: '1px solid #e5e7eb' }}>
         <NodeSidebar onDragStart={onDragStart} />
       </div>
       <div style={{ flex: 1, position: 'relative' }}>
@@ -275,8 +278,12 @@ export function WorkflowEditor() {
           </Panel>
         </ReactFlow>
       </div>
-      <div style={{ width: 360, flexShrink: 0, borderLeft: '1px solid #e5e7eb' }}>
-        {renderSelectedNodeForm()}
+      <div style={{ width: 320, flexShrink: 0, borderLeft: '1px solid #e5e7eb', background: '#f8fafc', overflowY: 'auto' }}>
+        <PerformanceMetricsPanel />
+        <div style={{ borderTop: '1px solid #e5e7eb', padding: 14, background: '#fff' }}>
+          <strong style={{ color: '#0f172a', fontSize: 14 }}>Node Configuration</strong>
+          <div style={{ marginTop: 8 }}>{renderSelectedNodeForm()}</div>
+        </div>
       </div>
     </div>
   );
