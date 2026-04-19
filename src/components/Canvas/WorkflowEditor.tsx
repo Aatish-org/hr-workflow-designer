@@ -32,6 +32,7 @@ import { StartNodeForm } from '../Forms/StartNodeForm';
 import { EndNodeForm } from '../Forms/EndNodeForm';
 import { useWorkflowStore } from '../../stores/workflowStore';
 import { PerformanceMetricsPanel } from '../Metrics/PerformanceMetricsPanel';
+import { NoNodeSelected } from './NoNodeSelected';
 import 'reactflow/dist/style.css';
 
 const nodeTypes: NodeTypes = {
@@ -163,11 +164,7 @@ export function WorkflowEditor() {
 
   const renderSelectedNodeForm = () => {
     if (!selectedNode) {
-      return (
-        <div style={{ padding: 16, color: '#6b7280', fontSize: 14 }}>
-          Select a node on the canvas to edit it.
-        </div>
-      );
+      return <NoNodeSelected />;
     }
 
     switch (selectedNode.type) {
@@ -278,11 +275,13 @@ export function WorkflowEditor() {
           </Panel>
         </ReactFlow>
       </div>
-      <div style={{ width: 320, flexShrink: 0, borderLeft: '1px solid #e5e7eb', background: '#f8fafc', overflowY: 'auto' }}>
-        <PerformanceMetricsPanel />
-        <div style={{ borderTop: '1px solid #e5e7eb', padding: 14, background: '#fff' }}>
-          <strong style={{ color: '#0f172a', fontSize: 14 }}>Node Configuration</strong>
-          <div style={{ marginTop: 8 }}>{renderSelectedNodeForm()}</div>
+      <div style={{ width: 360, flexShrink: 0, borderLeft: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', backgroundColor: '#f8fafc', overflowY: 'auto', overflowX: 'hidden' }}>
+        <div style={{ padding: 16 }}>
+          {renderSelectedNodeForm()}
+        </div>
+        <div style={{ height: 1, backgroundColor: '#e5e7eb', margin: '16px 0' }} />
+        <div style={{ padding: '0 16px 16px' }}>
+          <PerformanceMetricsPanel />
         </div>
       </div>
     </div>

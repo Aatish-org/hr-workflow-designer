@@ -79,7 +79,7 @@ const initialWorkflowMetrics: WorkflowMetrics = {
   ],
   flowObjectives: [
     { id: 'output-generation', icon: '🧾', title: 'Output Generation', description: 'Current completion pace', value: '68%' },
-    { id: 'compliance', icon: '🛡️', title: 'Compliance Checks', description: 'Automated policy checks passed', value: '92%' },
+    { id: 'lorem-ipsum', icon: '🛡️', title: 'Lorem Ipsum', description: 'Automated policy checks passed', value: '92%' },
     { id: 'action-trigger', icon: '🎬', title: 'Action Trigger', description: 'Avg. trigger reaction time', value: '1.4m' },
   ],
 };

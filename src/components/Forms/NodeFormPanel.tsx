@@ -84,16 +84,20 @@ export function NodeFormPanel({
 
   return (
     <section style={{
-      height: '100%',
-      display: 'flex',
-      flexDirection: 'column',
+      display: 'grid',
+      gap: 16,
       background: '#fff',
-      borderLeft: '1px solid #e5e7eb'
+      border: '1px solid #e5e7eb',
+      borderRadius: 12,
+      padding: 16,
     }}>
-      <div style={{ padding: 16, borderBottom: '1px solid #e5e7eb' }}>
+      <div>
         <h3 style={{ margin: 0, fontSize: 18, fontWeight: 'bold', color: '#111827' }}>
           Node Configuration
         </h3>
+        <p style={{ margin: '6px 0 0', color: '#64748b', fontSize: 13 }}>
+          {title}
+        </p>
         {nodeType && typeLabel && colors && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
             <span
@@ -121,7 +125,7 @@ export function NodeFormPanel({
         {subtitle ? <p style={{ margin: '8px 0 0', color: '#6b7280', fontSize: 13, lineHeight: 1.5 }}>{subtitle}</p> : null}
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: 16 }}>
+      <div>
         {!hasSelection ? (
           <p style={{ color: '#6b7280', fontSize: 14 }}>Select a node on the canvas to edit it.</p>
         ) : (
@@ -141,7 +145,7 @@ export function NodeFormPanel({
         )}
       </div>
 
-      <div style={{ padding: 16, borderTop: '1px solid #e5e7eb', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+      <div style={{ paddingTop: 12, borderTop: '1px solid #e5e7eb', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <button
           type="button"
           onClick={onSubmit}
