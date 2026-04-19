@@ -17,7 +17,7 @@ export function PerformanceMetricsPanel() {
   }, [query, workflowMetrics.insightMetrics]);
 
   return (
-    <section style={{ display: 'grid', gap: 12, padding: 14, background: '#f8fafc' }}>
+    <section style={{ display: 'grid', gap: 12 }}>
       <header style={{ borderRadius: 12, border: '1px solid #e5e7eb', background: '#fff', padding: 12 }}>
         <strong style={{ color: '#0f172a' }}>Performance Overview</strong>
         <p style={{ margin: '6px 0 0', color: '#64748b', fontSize: 12 }}>Real-time workflow performance insights</p>
@@ -55,15 +55,11 @@ export function PerformanceMetricsPanel() {
 
       <div style={{ borderRadius: 12, border: '1px solid #e5e7eb', background: '#fff', padding: 12, display: 'grid', gap: 8 }}>
         <strong style={{ color: '#0f172a', fontSize: 14 }}>🎯 Flow Objectives</strong>
-        {workflowMetrics.flowObjectives.map((metric) => (
-          <MetricsCard
-            key={metric.id}
-            icon={metric.icon}
-            title={metric.title}
-            description={metric.description}
-            value={metric.value}
-          />
-        ))}
+        <ul style={{ margin: 0, paddingLeft: 18, color: '#334155', fontSize: 13, display: 'grid', gap: 6 }}>
+          {workflowMetrics.flowObjectives.map((metric) => (
+            <li key={metric.id}>{metric.title}</li>
+          ))}
+        </ul>
       </div>
     </section>
   );
