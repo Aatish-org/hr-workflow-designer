@@ -6,10 +6,13 @@ interface ControlledFieldProps {
   onChange: (value: string) => void;
   placeholder?: string;
   type?: 'text' | 'password' | 'email';
+  error?: string;
+  onBlur?: () => void;
 }
 
-export function ControlledField({ label, value, onChange, placeholder, type = 'text' }: ControlledFieldProps) {
+export function ControlledField({ label, value, onChange, placeholder, type = 'text', error, onBlur }: ControlledFieldProps) {
   const id = useId();
+  const defaultBorderColor = error ? '#ef4444' : '#e5e7eb';
 
   return (
     <label htmlFor={id} style={{ display: 'grid', gap: 6 }}>
@@ -23,7 +26,7 @@ export function ControlledField({ label, value, onChange, placeholder, type = 't
         aria-label={label}
         style={{
           background: '#fff',
-          border: '1px solid #e5e7eb',
+          border: `1px solid ${defaultBorderColor}`,
           borderRadius: 8,
           padding: '10px 12px',
           fontSize: 14,
@@ -35,10 +38,12 @@ export function ControlledField({ label, value, onChange, placeholder, type = 't
           e.target.style.boxShadow = '0 0 0 3px rgba(37, 99, 235, 0.1)';
         }}
         onBlur={(e) => {
-          e.target.style.borderColor = '#e5e7eb';
+          e.target.style.borderColor = defaultBorderColor;
           e.target.style.boxShadow = 'none';
+          onBlur?.();
         }}
       />
+      {error ? <span style={{ fontSize: 12, color: '#ef4444' }}>{error}</span> : null}
     </label>
   );
 }

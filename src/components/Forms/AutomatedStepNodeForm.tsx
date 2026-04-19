@@ -9,6 +9,14 @@ export function AutomatedStepNodeForm() {
   const isAutomatedStepNode = selected?.type === 'automatedStep';
   const [label, setLabel] = useState(isAutomatedStepNode ? selected.data.label : 'Automated Step');
   const [description, setDescription] = useState(isAutomatedStepNode ? selected.data.description ?? '' : '');
+  const [labelError, setLabelError] = useState<string | undefined>();
+
+  const handleLabelChange = (value: string) => {
+    setLabel(value);
+    if (value.trim()) {
+      setLabelError(undefined);
+    }
+  };
 
   return (
     <NodeFormPanel
@@ -20,6 +28,10 @@ export function AutomatedStepNodeForm() {
       validationErrors={isAutomatedStepNode ? validationErrors : []}
       onSubmit={() => {
         if (!selected || !isAutomatedStepNode) return;
+        if (!label.trim()) {
+          setLabelError('Label is required');
+          return;
+        }
         updateNode(selected.id, 'automatedStep', {
           label,
           description: description || undefined,
@@ -31,6 +43,7 @@ export function AutomatedStepNodeForm() {
         if (!selected || !isAutomatedStepNode) return;
         setLabel('Automated Step');
         setDescription('');
+        setLabelError(undefined);
         updateNode(selected.id, 'automatedStep', {
           label: 'Automated Step',
           description: undefined,
@@ -39,7 +52,13 @@ export function AutomatedStepNodeForm() {
       }}
       onDelete={() => selected && isAutomatedStepNode && deleteNode(selected.id)}
     >
-      <ControlledField label="Label" value={label} onChange={setLabel} />
+      <ControlledField
+        label="Label"
+        value={label}
+        onChange={handleLabelChange}
+        error={labelError}
+        onBlur={() => setLabelError(label.trim() ? undefined : 'Label is required')}
+      />
       <ControlledField label="Description" value={description} onChange={setDescription} placeholder="Optional" />
     </NodeFormPanel>
   );

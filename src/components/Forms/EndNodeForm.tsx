@@ -9,6 +9,14 @@ export function EndNodeForm() {
   const isEndNode = selected?.type === 'end';
   const [label, setLabel] = useState(isEndNode ? selected.data.label : 'End');
   const [description, setDescription] = useState(isEndNode ? selected.data.description ?? '' : '');
+  const [labelError, setLabelError] = useState<string | undefined>();
+
+  const handleLabelChange = (value: string) => {
+    setLabel(value);
+    if (value.trim()) {
+      setLabelError(undefined);
+    }
+  };
 
   return (
     <NodeFormPanel
@@ -20,6 +28,10 @@ export function EndNodeForm() {
       validationErrors={isEndNode ? validationErrors : []}
       onSubmit={() => {
         if (!selected || !isEndNode) return;
+        if (!label.trim()) {
+          setLabelError('Label is required');
+          return;
+        }
         updateNode(selected.id, 'end', {
           label,
           description: description || undefined,
@@ -31,6 +43,7 @@ export function EndNodeForm() {
         if (!selected || !isEndNode) return;
         setLabel('End');
         setDescription('');
+        setLabelError(undefined);
         updateNode(selected.id, 'end', {
           label: 'End',
           description: undefined,
@@ -39,7 +52,13 @@ export function EndNodeForm() {
       }}
       onDelete={() => selected && isEndNode && deleteNode(selected.id)}
     >
-      <ControlledField label="Label" value={label} onChange={setLabel} />
+      <ControlledField
+        label="Label"
+        value={label}
+        onChange={handleLabelChange}
+        error={labelError}
+        onBlur={() => setLabelError(label.trim() ? undefined : 'Label is required')}
+      />
       <ControlledField label="Description" value={description} onChange={setDescription} placeholder="Optional" />
     </NodeFormPanel>
   );
