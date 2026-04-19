@@ -45,10 +45,10 @@ const nodeTypes: NodeTypes = {
 
 const initialWorkflowNodes: Node<WorkflowNodeData>[] = [
   { id: 'start-1', type: 'start', position: { x: 120, y: 120 }, data: { nodeType: 'start', label: 'User Initializing', description: 'Initializing for Automation', trigger: 'manual' } },
-  { id: 'task-1', type: 'task', position: { x: 420, y: 120 }, data: { nodeType: 'task', label: 'Data Collection', description: 'Collecting applicant records', assignee: 'HR' } },
-  { id: 'approval-1', type: 'approval', position: { x: 730, y: 120 }, data: { nodeType: 'approval', label: 'Policy Approval', description: 'Approver confirmation step', approverRole: 'Manager', reviewerCount: 2 } },
-  { id: 'automated-1', type: 'automatedStep', position: { x: 1040, y: 120 }, data: { nodeType: 'automatedStep', label: 'Automation Dispatch', description: 'Executing downstream tasks', automationKey: 'notify-slack' } },
-  { id: 'end-1', type: 'end', position: { x: 1350, y: 120 }, data: { nodeType: 'end', label: 'Completion', description: 'Workflow finished', outcome: 'complete' } },
+  { id: 'task-1', type: 'task', position: { x: 360, y: 120 }, data: { nodeType: 'task', label: 'Data Collection', description: 'Collecting applicant records', assignee: 'HR' } },
+  { id: 'approval-1', type: 'approval', position: { x: 600, y: 120 }, data: { nodeType: 'approval', label: 'Policy Approval', description: 'Approver confirmation step', approverRole: 'Manager', reviewerCount: 2 } },
+  { id: 'automated-1', type: 'automatedStep', position: { x: 840, y: 120 }, data: { nodeType: 'automatedStep', label: 'Automation Dispatch', description: 'Executing downstream tasks', automationKey: 'notify-slack' } },
+  { id: 'end-1', type: 'end', position: { x: 1080, y: 120 }, data: { nodeType: 'end', label: 'Completion', description: 'Workflow finished', outcome: 'complete' } },
 ];
 
 const initialEdges: Edge[] = [
