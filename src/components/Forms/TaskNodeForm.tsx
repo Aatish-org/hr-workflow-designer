@@ -9,6 +9,14 @@ export function TaskNodeForm() {
   const isTaskNode = selected?.type === 'task';
   const [label, setLabel] = useState(isTaskNode ? selected.data.label : 'Task');
   const [description, setDescription] = useState(isTaskNode ? selected.data.description ?? '' : '');
+  const [labelError, setLabelError] = useState<string | undefined>();
+
+  const handleLabelChange = (value: string) => {
+    setLabel(value);
+    if (value.trim()) {
+      setLabelError(undefined);
+    }
+  };
 
   return (
     <NodeFormPanel
@@ -20,6 +28,10 @@ export function TaskNodeForm() {
       validationErrors={isTaskNode ? validationErrors : []}
       onSubmit={() => {
         if (!selected || !isTaskNode) return;
+        if (!label.trim()) {
+          setLabelError('Label is required');
+          return;
+        }
         updateNode(selected.id, 'task', { label, description: description || undefined, assignee: selected.data.assignee ?? 'HR' });
         validateWorkflow();
       }}
@@ -27,11 +39,18 @@ export function TaskNodeForm() {
         if (!selected || !isTaskNode) return;
         setLabel('Task');
         setDescription('');
+        setLabelError(undefined);
         updateNode(selected.id, 'task', { label: 'Task', description: undefined, assignee: 'HR' });
       }}
       onDelete={() => selected && isTaskNode && deleteNode(selected.id)}
     >
-      <ControlledField label="Label" value={label} onChange={setLabel} />
+      <ControlledField
+        label="Label"
+        value={label}
+        onChange={handleLabelChange}
+        error={labelError}
+        onBlur={() => setLabelError(label.trim() ? undefined : 'Label is required')}
+      />
       <ControlledField label="Description" value={description} onChange={setDescription} placeholder="Optional" />
     </NodeFormPanel>
   );

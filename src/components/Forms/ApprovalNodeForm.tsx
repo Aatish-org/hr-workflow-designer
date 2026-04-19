@@ -9,6 +9,14 @@ export function ApprovalNodeForm() {
   const isApprovalNode = selected?.type === 'approval';
   const [label, setLabel] = useState(isApprovalNode ? selected.data.label : 'Approval');
   const [description, setDescription] = useState(isApprovalNode ? selected.data.description ?? '' : '');
+  const [labelError, setLabelError] = useState<string | undefined>();
+
+  const handleLabelChange = (value: string) => {
+    setLabel(value);
+    if (value.trim()) {
+      setLabelError(undefined);
+    }
+  };
 
   return (
     <NodeFormPanel
@@ -20,6 +28,10 @@ export function ApprovalNodeForm() {
       validationErrors={isApprovalNode ? validationErrors : []}
       onSubmit={() => {
         if (!selected || !isApprovalNode) return;
+        if (!label.trim()) {
+          setLabelError('Label is required');
+          return;
+        }
         updateNode(selected.id, 'approval', {
           label,
           description: description || undefined,
@@ -32,6 +44,7 @@ export function ApprovalNodeForm() {
         if (!selected || !isApprovalNode) return;
         setLabel('Approval');
         setDescription('');
+        setLabelError(undefined);
         updateNode(selected.id, 'approval', {
           label: 'Approval',
           description: undefined,
@@ -41,7 +54,13 @@ export function ApprovalNodeForm() {
       }}
       onDelete={() => selected && isApprovalNode && deleteNode(selected.id)}
     >
-      <ControlledField label="Label" value={label} onChange={setLabel} />
+      <ControlledField
+        label="Label"
+        value={label}
+        onChange={handleLabelChange}
+        error={labelError}
+        onBlur={() => setLabelError(label.trim() ? undefined : 'Label is required')}
+      />
       <ControlledField label="Description" value={description} onChange={setDescription} placeholder="Optional" />
     </NodeFormPanel>
   );

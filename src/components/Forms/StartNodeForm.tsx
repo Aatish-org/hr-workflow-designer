@@ -9,6 +9,14 @@ export function StartNodeForm() {
   const isStartNode = selected?.type === 'start';
   const [label, setLabel] = useState(isStartNode ? selected.data.label : 'Start');
   const [description, setDescription] = useState(isStartNode ? selected.data.description ?? '' : '');
+  const [labelError, setLabelError] = useState<string | undefined>();
+
+  const handleLabelChange = (value: string) => {
+    setLabel(value);
+    if (value.trim()) {
+      setLabelError(undefined);
+    }
+  };
 
   return (
     <NodeFormPanel
@@ -20,6 +28,10 @@ export function StartNodeForm() {
       validationErrors={isStartNode ? validationErrors : []}
       onSubmit={() => {
         if (!selected || !isStartNode) return;
+        if (!label.trim()) {
+          setLabelError('Label is required');
+          return;
+        }
         updateNode(selected.id, 'start', { label, description: description || undefined, trigger: selected.data.trigger ?? 'manual' });
         validateWorkflow();
       }}
@@ -27,11 +39,18 @@ export function StartNodeForm() {
         if (!selected || !isStartNode) return;
         setLabel('Start');
         setDescription('');
+        setLabelError(undefined);
         updateNode(selected.id, 'start', { label: 'Start', description: undefined, trigger: 'manual' });
       }}
       onDelete={() => selected && isStartNode && deleteNode(selected.id)}
     >
-      <ControlledField label="Label" value={label} onChange={setLabel} />
+      <ControlledField
+        label="Label"
+        value={label}
+        onChange={handleLabelChange}
+        error={labelError}
+        onBlur={() => setLabelError(label.trim() ? undefined : 'Label is required')}
+      />
       <ControlledField label="Description" value={description} onChange={setDescription} placeholder="Optional" />
     </NodeFormPanel>
   );
